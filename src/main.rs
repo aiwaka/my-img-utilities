@@ -9,6 +9,7 @@ use crate::{
     process::modify_part_of_img,
 };
 
+mod arithmetic;
 mod filter;
 mod io;
 mod process;
@@ -24,23 +25,25 @@ fn main() -> Result<()> {
         path_str, img_width, img_height
     );
 
-    // let kuwahara_config = KuwaharaFilterOptions { window_size: 15 };
-    // let processor = KuwaharaFilter::new(kuwahara_config);
-    let truncate_option =
-        TruncateColorFilterOption::new(filter::truncate_color::TruncateComponent::R);
-    let r_processor = TruncateColorFilter::new(truncate_option);
-    let truncate_option =
-        TruncateColorFilterOption::new(filter::truncate_color::TruncateComponent::G);
-    let g_processor = TruncateColorFilter::new(truncate_option);
-    let img = DynamicImage::from(modify_part_of_img(
-        img,
-        1000,
-        1000,
-        1000,
-        1000,
-        &r_processor,
-    )?);
-    let img = modify_part_of_img(img, 1500, 1800, 1000, 1000, &g_processor)?;
+    let kuwahara_config = KuwaharaFilterOptions { window_size: 15 };
+    let processor = KuwaharaFilter::new(kuwahara_config);
+    let img = modify_part_of_img(img, 1000, 1000, 1000, 1000, &processor)?;
+
+    // let truncate_option =
+    //     TruncateColorFilterOption::new(filter::truncate_color::TruncateComponent::R);
+    // let r_processor = TruncateColorFilter::new(truncate_option);
+    // let truncate_option =
+    //     TruncateColorFilterOption::new(filter::truncate_color::TruncateComponent::G);
+    // let g_processor = TruncateColorFilter::new(truncate_option);
+    // let img = DynamicImage::from(modify_part_of_img(
+    //     img,
+    //     1000,
+    //     1000,
+    //     1000,
+    //     1000,
+    //     &r_processor,
+    // )?);
+    // let img = modify_part_of_img(img, 1500, 1800, 1000, 1000, &g_processor)?;
 
     img.save("./operated.png").unwrap();
     Ok(())

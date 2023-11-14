@@ -528,6 +528,7 @@ dependencies = [
  "image",
  "itertools",
  "magick_rust",
+ "num-traits",
  "rgb",
  "serde",
  "serde_derive",
