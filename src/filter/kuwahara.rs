@@ -14,7 +14,7 @@ impl Default for KuwaharaFilterOptions {
 
 fn variance(vec: &[u8]) -> f64 {
     let n = vec.len() as f64;
-    let mean = vec.iter().sum::<u8>() as f64 / n;
+    let mean = vec.iter().map(|&x| x as f64).sum::<f64>() / n;
     vec.iter().map(|&x| x as f64 * x as f64).sum::<f64>() / n - mean * mean
 }
 
@@ -32,12 +32,12 @@ pub fn kuwahara_filter(
             let mut var_sum_array = [[0f64; 2]; 2];
             // 近傍を示すインデックスの区間を作成する
             let neighbour_indices_x = [
-                (0.max(i as i32 + 1 - window_size as i32) as u32)..=i,
-                i..=(buf_width.min(i + window_size - 1)),
+                (0.max(i as i32 + 1 - window_size as i32) as u32)..(i + 1),
+                i..(buf_width.min(i + window_size)),
             ];
             let neighbour_indices_y = [
-                (0.max(j as i32 + 1 - window_size as i32) as u32)..=j,
-                j..=(buf_height.min(j + window_size - 1)),
+                (0.max(j as i32 + 1 - window_size as i32) as u32)..(j + 1),
+                j..(buf_height.min(j + window_size)),
             ];
             for (block_x, block_y) in iproduct!(0..=1, 0..=1) {
                 // 各近傍について演算
@@ -79,8 +79,8 @@ pub fn kuwahara_filter(
             }
             let mut result_rgb = [0u8; 3];
             for (rgb_index, pixel_colors) in pixel_colors_rgb.iter().enumerate() {
-                result_rgb[rgb_index] =
-                    (pixel_colors.iter().sum::<u8>() as f64 / pixel_colors.len() as f64) as u8;
+                result_rgb[rgb_index] = (pixel_colors.iter().map(|&x| x as f64).sum::<f64>()
+                    / pixel_colors.len() as f64) as u8;
             }
             result_buf.put_pixel(i, j, Rgb::<u8>(result_rgb));
         }

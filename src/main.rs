@@ -17,8 +17,8 @@ fn modify(buf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
 }
 
 fn main() {
-    // let path = std::fs::canonicalize("./IMG.JPG").unwrap();
-    let path = std::fs::canonicalize("./cropped.png").unwrap();
+    let path = std::fs::canonicalize("./IMG.JPG").unwrap();
+    // let path = std::fs::canonicalize("./cropped.png").unwrap();
     let mut img = image::open(path).unwrap();
     let width = img.width();
     let height = img.height();
@@ -31,7 +31,9 @@ fn main() {
     // modify(&mut cropped_img);
     // img.copy_from(&cropped_img, 0, 0).unwrap();
 
+    let kuwahara_config = KuwaharaFilterOptions { window_size: 5 };
+
     let img = img.into_rgb8();
-    let img = filter::kuwahara::kuwahara_filter(&img, KuwaharaFilterOptions::default());
+    let img = filter::kuwahara::kuwahara_filter(&img, kuwahara_config);
     img.save("./operated.png").unwrap();
 }
