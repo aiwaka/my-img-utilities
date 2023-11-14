@@ -1,0 +1,7 @@
+/target
+.DS_Store
+
+*.heic
+*.jpg
+*.webp
+*.png

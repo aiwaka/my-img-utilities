@@ -1,0 +1,17 @@
+[package]
+name = "my-img-utilities"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+clap = { version = "4.4.8", features = ["derive"] }
+image = "0.24.7"
+itertools = "0.11.0"
+magick_rust = "0.19.1"
+rgb = "0.8.37"
+serde = "1.0.192"
+serde_derive = "1.0.192"
+serde_yaml = "0.9.27"
