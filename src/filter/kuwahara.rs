@@ -1,6 +1,8 @@
 use image::{ImageBuffer, Rgb};
 use itertools::iproduct;
 
+use crate::process::FilterProcessor;
+
 #[derive(Debug, Clone)]
 pub struct KuwaharaFilterOptions {
     /// Kuwahara filterの平均化する近傍窓サイズ。デフォルトは3。
@@ -12,6 +14,20 @@ impl Default for KuwaharaFilterOptions {
     }
 }
 
+pub struct KuwaharaFilter {
+    pub option: KuwaharaFilterOptions,
+}
+impl KuwaharaFilter {
+    pub fn new(option: KuwaharaFilterOptions) -> Self {
+        Self { option }
+    }
+}
+impl FilterProcessor for KuwaharaFilter {
+    fn process(&self, buf: &ImageBuffer<Rgb<u8>, Vec<u8>>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+        kuwahara_filter(buf, &self.option)
+    }
+}
+
 fn variance(vec: &[u8]) -> f64 {
     let n = vec.len() as f64;
     let mean = vec.iter().map(|&x| x as f64).sum::<f64>() / n;
@@ -19,9 +35,9 @@ fn variance(vec: &[u8]) -> f64 {
 }
 
 /// ピクセルの参照を受け取ってその領域のみで計算する。
-pub fn kuwahara_filter(
+fn kuwahara_filter(
     buf: &ImageBuffer<Rgb<u8>, Vec<u8>>,
-    options: KuwaharaFilterOptions,
+    options: &KuwaharaFilterOptions,
 ) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
     let window_size = options.window_size;
     let (buf_width, buf_height) = buf.dimensions();

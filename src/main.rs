@@ -2,7 +2,7 @@ use anyhow::Result;
 use image::{ImageBuffer, Rgb};
 
 use crate::{
-    filter::kuwahara::{kuwahara_filter, KuwaharaFilterOptions},
+    filter::kuwahara::{KuwaharaFilter, KuwaharaFilterOptions},
     process::modify_part_of_img,
 };
 
@@ -33,10 +33,9 @@ fn main() -> Result<()> {
     );
 
     let kuwahara_config = KuwaharaFilterOptions { window_size: 15 };
+    let processor = KuwaharaFilter::new(kuwahara_config);
     // 一部を切り出して処理してあとで戻す処理をしている。
-    let img = modify_part_of_img(img, 1000, 1000, 1000, 1000, |buf| {
-        kuwahara_filter(buf, kuwahara_config)
-    })?;
+    let img = modify_part_of_img(img, 1000, 1000, 1000, 1000, &processor)?;
 
     img.save("./operated.png").unwrap();
     Ok(())
