@@ -1,7 +1,7 @@
 use image::{ImageBuffer, Rgb};
 use itertools::iproduct;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct KuwaharaFilterOptions {
     /// Kuwahara filterの平均化する近傍窓サイズ。デフォルトは3。
     pub window_size: u32,

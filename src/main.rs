@@ -1,9 +1,14 @@
+use anyhow::Result;
 use image::{ImageBuffer, Rgb};
 
-use crate::filter::kuwahara::KuwaharaFilterOptions;
+use crate::{
+    filter::kuwahara::{kuwahara_filter, KuwaharaFilterOptions},
+    process::modify_part_of_img,
+};
 
 mod filter;
 mod io;
+mod process;
 
 fn modify(buf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
     let width = buf.width();
@@ -16,24 +21,23 @@ fn modify(buf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
     }
 }
 
-fn main() {
-    let path = std::fs::canonicalize("./IMG.JPG").unwrap();
-    // let path = std::fs::canonicalize("./cropped.png").unwrap();
-    let mut img = image::open(path).unwrap();
-    let width = img.width();
-    let height = img.height();
-    println!("image size: ({}, {})", width, height);
+fn main() -> Result<()> {
+    let path = std::fs::canonicalize("./IMG_6388.jpg").unwrap();
+    let path_str = path.to_str().unwrap().to_owned();
+    let img = image::open(path).unwrap();
+    let img_width = img.width();
+    let img_height = img.height();
+    println!(
+        "path: {}\nimage size: ({}, {})",
+        path_str, img_width, img_height
+    );
 
+    let kuwahara_config = KuwaharaFilterOptions { window_size: 15 };
     // 一部を切り出して処理してあとで戻す処理をしている。
-    // let cropped_img = img.crop_imm(0, 0, 1000, 1000);
-    // let mut cropped_img = cropped_img.into_rgb8();
-    // let mut img = img.into_rgb8();
-    // modify(&mut cropped_img);
-    // img.copy_from(&cropped_img, 0, 0).unwrap();
+    let img = modify_part_of_img(img, 1000, 1000, 1000, 1000, |buf| {
+        kuwahara_filter(buf, kuwahara_config)
+    })?;
 
-    let kuwahara_config = KuwaharaFilterOptions { window_size: 5 };
-
-    let img = img.into_rgb8();
-    let img = filter::kuwahara::kuwahara_filter(&img, kuwahara_config);
     img.save("./operated.png").unwrap();
+    Ok(())
 }
