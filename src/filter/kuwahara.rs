@@ -15,6 +15,7 @@ impl Default for KuwaharaFilterOptions {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct KuwaharaFilter {
     pub option: KuwaharaFilterOptions,
 }

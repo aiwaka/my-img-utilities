@@ -2,11 +2,13 @@ use image::ImageBuffer;
 
 use crate::process::FilterProcessor;
 
+#[derive(Debug, Clone, Copy)]
 pub enum TruncateComponent {
     R,
     G,
     B,
 }
+#[derive(Debug, Clone)]
 pub struct TruncateColorFilterOption {
     pub component: TruncateComponent,
 }
@@ -16,6 +18,7 @@ impl TruncateColorFilterOption {
     }
 }
 /// RGBのいずれかを0にするフィルタ。
+#[derive(Debug, Clone)]
 pub struct TruncateColorFilter {
     pub option: TruncateColorFilterOption,
 }

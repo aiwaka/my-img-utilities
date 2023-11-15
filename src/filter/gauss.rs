@@ -2,6 +2,7 @@ use image::ImageBuffer;
 
 use crate::process::FilterProcessor;
 
+#[derive(Debug, Clone)]
 pub struct GaussianFilterOption {
     pub sigma: f64,
 }
@@ -11,6 +12,7 @@ impl GaussianFilterOption {
     }
 }
 /// ガウスぼかしフィルタ
+#[derive(Debug, Clone)]
 pub struct GaussianFilter {
     pub option: GaussianFilterOption,
 }

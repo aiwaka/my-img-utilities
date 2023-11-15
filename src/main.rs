@@ -2,6 +2,7 @@ use anyhow::Result;
 
 use crate::{
     filter::{
+        grayscale::GrayscaleFilter,
         kuwahara::{KuwaharaFilter, KuwaharaFilterOptions},
         truncate_color::{TruncateColorFilter, TruncateColorFilterOption},
     },
@@ -24,9 +25,12 @@ fn main() -> Result<()> {
         path_str, img_width, img_height
     );
 
-    let kuwahara_config = KuwaharaFilterOptions { window_size: 3 };
-    let processor = KuwaharaFilter::new(kuwahara_config);
+    let processor = GrayscaleFilter;
     let img = modify_part_of_img(img.to_rgb8(), 1000, 1000, 1000, 1000, &processor)?;
+
+    // let kuwahara_config = KuwaharaFilterOptions { window_size: 3 };
+    // let processor = KuwaharaFilter::new(kuwahara_config);
+    // let img = modify_part_of_img(img.to_rgb8(), 1000, 1000, 1000, 1000, &processor)?;
 
     // let truncate_option =
     //     TruncateColorFilterOption::new(filter::truncate_color::TruncateComponent::R);

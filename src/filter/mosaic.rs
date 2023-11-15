@@ -2,6 +2,7 @@ use image::ImageBuffer;
 
 use crate::process::FilterProcessor;
 
+#[derive(Debug, Clone)]
 pub struct MosaicFilterOption {
     pub size: u32,
 }
@@ -11,6 +12,7 @@ impl MosaicFilterOption {
     }
 }
 /// モザイクフィルタ
+#[derive(Debug, Clone)]
 pub struct MosaicFilter {
     pub option: MosaicFilterOption,
 }
