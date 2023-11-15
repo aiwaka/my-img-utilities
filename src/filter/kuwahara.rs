@@ -9,6 +9,11 @@ pub struct KuwaharaFilterOptions {
     /// Kuwahara filterの平均化する近傍窓サイズ。デフォルトは3。
     pub window_size: u32,
 }
+impl KuwaharaFilterOptions {
+    pub fn new(window_size: u32) -> Self {
+        Self { window_size }
+    }
+}
 impl Default for KuwaharaFilterOptions {
     fn default() -> Self {
         Self { window_size: 3 }

@@ -6,18 +6,19 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use crate::cli::clap_parser::parser::AppArgs;
-use crate::filter::AppFilterType;
+use crate::filter::prelude::*;
+use crate::filter::{AppFilter, AppFilterType};
 
 #[derive(Debug, Clone)]
 pub struct FilterProcess {
-    pub filter: AppFilterType,
+    pub filter: AppFilter,
     pub x: u32,
     pub y: u32,
     pub width: u32,
     pub height: u32,
 }
 impl FilterProcess {
-    pub fn new(filter: AppFilterType, rect_info: RectInfo) -> Self {
+    pub fn new(filter: AppFilter, rect_info: RectInfo) -> Self {
         let rect = rect_info.0;
         FilterProcess {
             filter,
@@ -96,7 +97,24 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
             .with_error_message("Please type a valid number")
             .with_help_message("format: x y width height")
             .prompt()?;
-        processes.push(FilterProcess::new(filter_type, rect_info));
+        // TODO: 数値をmatch arm内で入力させる
+        let filter = match filter_type {
+            AppFilterType::Gaussian => {
+                AppFilter::Gaussian(GaussianFilter::new(GaussianFilterOption::new(1.0)))
+            }
+
+            AppFilterType::GrayScale => AppFilter::GrayScale(GrayscaleFilter::new()),
+            AppFilterType::Kuwahara => {
+                AppFilter::Kuwahara(KuwaharaFilter::new(KuwaharaFilterOptions::default()))
+            }
+            AppFilterType::Mosaic => {
+                AppFilter::Mosaic(MosaicFilter::new(MosaicFilterOption::new(10)))
+            }
+            AppFilterType::Truncate => AppFilter::Truncate(TruncateColorFilter::new(
+                TruncateColorFilterOption::new(TruncateComponent::R),
+            )),
+        };
+        processes.push(FilterProcess::new(filter, rect_info));
 
         match Confirm::new("add another filter ?")
             .with_default(false)
