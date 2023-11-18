@@ -64,6 +64,25 @@ impl Display for RectInfo {
     }
 }
 
+fn simple_param_input<T: FromStr>(message: &str, default: &str) -> InquireResult<T>
+where
+    <T as FromStr>::Err: std::fmt::Display,
+{
+    loop {
+        match Text::new(message)
+            .with_default(default)
+            .prompt()?
+            .parse::<T>()
+        {
+            Ok(sigma) => break Ok(sigma),
+            Err(err) => {
+                println!("{}", err);
+                continue;
+            }
+        }
+    }
+}
+
 pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
     // コマンドライン引数に存在しない場合はプロンプトを用いて決定させる。
     let filepath = match &app_args.filepath {
@@ -100,19 +119,33 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
         // TODO: 数値をmatch arm内で入力させる
         let filter = match filter_type {
             AppFilterType::Gaussian => {
-                AppFilter::Gaussian(GaussianFilter::new(GaussianFilterOption::default()))
+                let window_size = simple_param_input("input window size (positive integer)", "10")?;
+                let sigma = simple_param_input("input parameter sigma (float)", "4.0")?;
+
+                AppFilter::Gaussian(GaussianFilter::new(GaussianFilterOption::new(
+                    window_size,
+                    sigma,
+                )))
             }
 
             AppFilterType::GrayScale => AppFilter::GrayScale(GrayscaleFilter::new()),
             AppFilterType::Kuwahara => {
-                AppFilter::Kuwahara(KuwaharaFilter::new(KuwaharaFilterOptions::default()))
+                let window_size = simple_param_input("input window size (positive integer)", "3")?;
+                AppFilter::Kuwahara(KuwaharaFilter::new(KuwaharaFilterOptions::new(window_size)))
             }
             AppFilterType::Mosaic => {
-                AppFilter::Mosaic(MosaicFilter::new(MosaicFilterOption::new(10)))
+                let size = simple_param_input("input window size (positive integer)", "50")?;
+                AppFilter::Mosaic(MosaicFilter::new(MosaicFilterOption::new(size)))
             }
-            AppFilterType::Truncate => AppFilter::Truncate(TruncateColorFilter::new(
-                TruncateColorFilterOption::new(TruncateComponent::R),
-            )),
+            AppFilterType::Truncate => {
+                let component =
+                    Select::new("select rgb component to truncate", TruncateComponent::vec())
+                        .prompt()?;
+
+                AppFilter::Truncate(TruncateColorFilter::new(TruncateColorFilterOption::new(
+                    component,
+                )))
+            }
         };
         processes.push(FilterProcess::new(filter, rect_info));
 

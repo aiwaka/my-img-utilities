@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use image::ImageBuffer;
 
 use crate::process::FilterProcessor;
@@ -7,6 +9,24 @@ pub enum TruncateComponent {
     R,
     G,
     B,
+}
+impl TruncateComponent {
+    pub fn vec() -> Vec<Self> {
+        vec![Self::R, Self::G, Self::B]
+    }
+}
+impl Display for TruncateComponent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::R => "Red",
+                Self::G => "Green",
+                Self::B => "Blue",
+            }
+        )
+    }
 }
 #[derive(Debug, Clone)]
 pub struct TruncateColorFilterOption {
