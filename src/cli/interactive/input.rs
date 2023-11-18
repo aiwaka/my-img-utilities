@@ -100,7 +100,7 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
         // TODO: 数値をmatch arm内で入力させる
         let filter = match filter_type {
             AppFilterType::Gaussian => {
-                AppFilter::Gaussian(GaussianFilter::new(GaussianFilterOption::new(1.0)))
+                AppFilter::Gaussian(GaussianFilter::new(GaussianFilterOption::default()))
             }
 
             AppFilterType::GrayScale => AppFilter::GrayScale(GrayscaleFilter::new()),

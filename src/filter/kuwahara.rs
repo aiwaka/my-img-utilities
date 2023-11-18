@@ -1,5 +1,4 @@
 use image::{GenericImage, GenericImageView, ImageBuffer, Rgb};
-use itertools::iproduct;
 use num_traits::Zero;
 
 use crate::{arithmetic::TripleNums, process::FilterProcessor};
@@ -52,7 +51,7 @@ impl FilterProcessor for KuwaharaFilter {
                     buf_height.min(j + window_size) - 1,
                 ];
 
-                for (block_x, block_y) in iproduct!(0..=1, 0..=1) {
+                for (block_x, block_y) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
                     // 各近傍について演算
                     let block_min_x = neighbour_edge_x[block_x];
                     let block_min_y = neighbour_edge_y[block_y];
@@ -79,16 +78,17 @@ impl FilterProcessor for KuwaharaFilter {
                 }
 
                 // 各ブロックの値を比較して最も小さい領域の平均RGBをとる。
-                let (min_block_index_x, min_block_index_y, _) = iproduct!(0..=1, 0..=1).fold(
-                    (0, 0, f64::MAX),
-                    |(prev_x, prev_y, prev_val), (block_x, block_y)| {
-                        if var_sum_array[block_x][block_y] < prev_val {
-                            (block_x, block_y, var_sum_array[block_x][block_y])
-                        } else {
-                            (prev_x, prev_y, prev_val)
-                        }
-                    },
-                );
+                let (min_block_index_x, min_block_index_y, _) =
+                    [(0, 0), (0, 1), (1, 0), (1, 1)].into_iter().fold(
+                        (0, 0, f64::MAX),
+                        |(prev_x, prev_y, prev_val), (block_x, block_y)| {
+                            if var_sum_array[block_x][block_y] < prev_val {
+                                (block_x, block_y, var_sum_array[block_x][block_y])
+                            } else {
+                                (prev_x, prev_y, prev_val)
+                            }
+                        },
+                    );
                 result_buf.put_pixel(
                     i,
                     j,

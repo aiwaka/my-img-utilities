@@ -47,6 +47,12 @@ impl<T: Num + ToPrimitive + Copy> Sub for TripleNums<T> {
         Self([self[0] - rhs[0], self[1] - rhs[1], self[2] - rhs[2]])
     }
 }
+impl<T: Num + ToPrimitive + Copy> Mul<T> for TripleNums<T> {
+    type Output = Self;
+    fn mul(self, rhs: T) -> Self::Output {
+        Self([self[0] * rhs, self[1] * rhs, self[2] * rhs])
+    }
+}
 impl<T: Num + ToPrimitive + Copy> Mul for TripleNums<T> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {

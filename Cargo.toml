@@ -9,10 +9,10 @@ edition = "2021"
 anyhow = "1.0.75"
 clap = { version = "4.4.8", features = ["derive"] }
 image = "0.24.7"
-itertools = "0.11.0"
 magick_rust = "0.19.1"
 num-traits = "0.2.17"
 rgb = "0.8.37"
 dialoguer = { version = "0.11", features = ["fuzzy-select"] }
 console = "0.15.7"
 inquire = "0.6.2"
+rayon = "1.8.0"
