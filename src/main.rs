@@ -26,6 +26,7 @@ fn main() -> Result<()> {
 
     let AppParams {
         filepath,
+        output,
         processes,
     } = app_params;
     let mut img = image::open(filepath).unwrap().into_rgb8();
@@ -42,6 +43,6 @@ fn main() -> Result<()> {
         } = filter_process;
         img = modify_part_of_img(img, *x, *y, *width, *height, filter).unwrap();
     }
-    img.save("./operated.png").unwrap();
+    img.save(output).unwrap();
     Ok(())
 }

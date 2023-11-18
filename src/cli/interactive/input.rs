@@ -1,7 +1,9 @@
-use inquire::Confirm;
+use inquire::autocompletion::Replacement;
 use inquire::{error::InquireResult, CustomType, Select, Text};
+use inquire::{Autocomplete, Confirm, CustomUserError};
 use std::fmt::Display;
 use std::fs;
+use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -33,6 +35,7 @@ impl FilterProcess {
 #[derive(Debug)]
 pub struct AppParams {
     pub filepath: PathBuf,
+    pub output: PathBuf,
     pub processes: Vec<FilterProcess>,
 }
 
@@ -92,10 +95,13 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
             canononicalized
         }
         None => loop {
-            let filepath = Text::new("file path:").prompt().unwrap_or_else(|err| {
-                println!("{}", err);
-                std::process::exit(1)
-            });
+            let filepath = Text::new("file path:")
+                .with_autocomplete(FilePathCompleter::default())
+                .prompt()
+                .unwrap_or_else(|err| {
+                    println!("{}", err);
+                    std::process::exit(1)
+                });
             let pathbuf = PathBuf::from(filepath);
             if pathbuf.exists() {
                 break fs::canonicalize(pathbuf).unwrap();
@@ -103,6 +109,27 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
                 println!("path does not exist.");
             }
         },
+    };
+    let output = match &app_args.output {
+        Some(output) => {
+            let canononicalized = fs::canonicalize(output).unwrap();
+            println!("filepath: {}", canononicalized.to_str().unwrap());
+            canononicalized
+        }
+        None => {
+            let default_path = {
+                let file_stem = filepath.file_stem().unwrap();
+                format!("./{}_filtered.jpg", file_stem.to_str().unwrap())
+            };
+            let filepath = Text::new("output path:")
+                .with_default(&default_path)
+                .prompt()
+                .unwrap_or_else(|err| {
+                    println!("{}", err);
+                    std::process::exit(1)
+                });
+            PathBuf::from(filepath)
+        }
     };
     let mut processes = Vec::<FilterProcess>::new();
     let filter_vec = AppFilterType::create_vec();
@@ -164,7 +191,123 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
 
     let app_params = AppParams {
         filepath,
+        output,
         processes,
     };
     Ok(app_params)
+}
+
+/// [https://docs.rs/inquire/0.6.2/src/complex_autocompletion/complex_autocompletion.rs.html]より.
+#[derive(Clone, Default)]
+pub struct FilePathCompleter {
+    input: String,
+    paths: Vec<String>,
+    lcp: String,
+}
+
+impl FilePathCompleter {
+    fn update_input(&mut self, input: &str) -> Result<(), CustomUserError> {
+        if input == self.input {
+            return Ok(());
+        }
+
+        self.input = input.to_owned();
+        self.paths.clear();
+
+        let input_path = std::path::PathBuf::from(input);
+
+        let fallback_parent = input_path
+            .parent()
+            .map(|p| {
+                if p.to_string_lossy() == "" {
+                    std::path::PathBuf::from(".")
+                } else {
+                    p.to_owned()
+                }
+            })
+            .unwrap_or_else(|| std::path::PathBuf::from("."));
+
+        let scan_dir = if input.ends_with('/') {
+            input_path
+        } else {
+            fallback_parent.clone()
+        };
+
+        let entries = match std::fs::read_dir(scan_dir) {
+            Ok(read_dir) => Ok(read_dir),
+            Err(err) if err.kind() == ErrorKind::NotFound => std::fs::read_dir(fallback_parent),
+            Err(err) => Err(err),
+        }?
+        .collect::<Result<Vec<_>, _>>()?;
+
+        let mut idx = 0;
+        let limit = 15;
+
+        while idx < entries.len() && self.paths.len() < limit {
+            let entry = entries.get(idx).unwrap();
+
+            let path = entry.path();
+            let path_str = if path.is_dir() {
+                format!("{}/", path.to_string_lossy())
+            } else {
+                path.to_string_lossy().to_string()
+            };
+
+            if path_str.starts_with(&self.input) && path_str.len() != self.input.len() {
+                self.paths.push(path_str);
+            }
+
+            idx = idx.saturating_add(1);
+        }
+
+        self.lcp = self.longest_common_prefix();
+
+        Ok(())
+    }
+
+    fn longest_common_prefix(&self) -> String {
+        let mut ret: String = String::new();
+
+        let mut sorted = self.paths.clone();
+        sorted.sort();
+        if sorted.is_empty() {
+            return ret;
+        }
+
+        let mut first_word = sorted.first().unwrap().chars();
+        let mut last_word = sorted.last().unwrap().chars();
+
+        loop {
+            match (first_word.next(), last_word.next()) {
+                (Some(c1), Some(c2)) if c1 == c2 => {
+                    ret.push(c1);
+                }
+                _ => return ret,
+            }
+        }
+    }
+}
+
+impl Autocomplete for FilePathCompleter {
+    fn get_suggestions(&mut self, input: &str) -> Result<Vec<String>, CustomUserError> {
+        self.update_input(input)?;
+
+        Ok(self.paths.clone())
+    }
+
+    fn get_completion(
+        &mut self,
+        input: &str,
+        highlighted_suggestion: Option<String>,
+    ) -> Result<Replacement, CustomUserError> {
+        self.update_input(input)?;
+
+        Ok(match highlighted_suggestion {
+            Some(suggestion) => Replacement::Some(suggestion),
+            None => match self.lcp.is_empty() {
+                true => Replacement::None,
+                false => Replacement::Some(self.lcp.clone()),
+            },
+        })
+    }
 }

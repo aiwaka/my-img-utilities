@@ -9,6 +9,8 @@ pub struct AppArgs {
     /// target file.
     #[arg(short, long)]
     pub filepath: Option<PathBuf>,
+    #[arg(short, long)]
+    pub output: Option<PathBuf>,
     // /// specify filter type
     // #[arg(short, long)]
     // pub filter_type: Option<u32>,
