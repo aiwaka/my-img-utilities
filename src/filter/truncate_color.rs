@@ -48,6 +48,11 @@ impl TruncateColorFilter {
         Self { option }
     }
 }
+impl Display for TruncateColorFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TruncateColor ({})", self.option.component)
+    }
+}
 impl FilterProcessor for TruncateColorFilter {
     fn process(
         &self,

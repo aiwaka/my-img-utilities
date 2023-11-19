@@ -2,13 +2,9 @@ use anyhow::Result;
 use image::{GenericImage, ImageBuffer, Rgb};
 
 /// 画像処理フィルタであることを示す。
-pub trait FilterProcessor: std::fmt::Debug {
+pub trait FilterProcessor: std::fmt::Debug + std::fmt::Display {
     /// ピクセルバッファを受け取り処理後のバッファを返す。
     fn process(&self, buf: &ImageBuffer<Rgb<u8>, Vec<u8>>) -> ImageBuffer<Rgb<u8>, Vec<u8>>;
-
-    fn display(&self) {
-        println!("{:?}", &self);
-    }
 }
 
 pub fn modify_whole_img<F>(
@@ -35,6 +31,33 @@ pub fn modify_part_of_img<F>(
 where
     F: FilterProcessor,
 {
+    let (img_width, img_height) = img.dimensions();
+    let (x, y, width, height) = if x > img_width || y > img_height {
+        println!("x or y value exceeds the bound of image. process stop.");
+        std::process::exit(2);
+    } else {
+        let width = if x + width > img_width {
+            let width = img_width.saturating_sub(x);
+            println!(
+                "the value of (x + width) exceeds the width of image ({} px). width clamped to {}",
+                img_width, width
+            );
+            width
+        } else {
+            width
+        };
+        let height = if y + height > img_height {
+            let height = img_height.saturating_sub(y);
+            println!(
+                "the value of (y + height) exceeds the height of image ({} px). height clamped to {}",
+                img_height, height
+            );
+            height
+        } else {
+            height
+        };
+        (x, y, width, height)
+    };
     let cropped = img.sub_image(x, y, width, height);
     let processed = processor.process(&cropped.to_image());
     img.copy_from(&processed, x, y)?;

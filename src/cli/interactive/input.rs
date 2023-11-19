@@ -30,12 +30,41 @@ impl FilterProcess {
         }
     }
 }
+impl std::fmt::Display for FilterProcess {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.filter {
+            AppFilter::Gaussian(filter) => filter.fmt(f),
+            AppFilter::GrayScale(filter) => filter.fmt(f),
+            AppFilter::Kuwahara(filter) => filter.fmt(f),
+            AppFilter::Mosaic(filter) => filter.fmt(f),
+            AppFilter::Truncate(filter) => filter.fmt(f),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct AppParams {
     pub filepath: PathBuf,
     pub output: PathBuf,
     pub processes: Vec<FilterProcess>,
+}
+impl std::fmt::Display for AppParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let filter_str = self
+            .processes
+            .iter()
+            .enumerate()
+            .fold("".to_string(), |prev, (idx, next)| {
+                format!("{}    {:>2}. {}\n", prev, idx + 1, next)
+            });
+        write!(
+            f,
+            "> filepath: {}\n> output  : {}\n> filters :\n{}",
+            self.filepath.to_string_lossy(),
+            self.output.to_string_lossy(),
+            filter_str
+        )
+    }
 }
 
 /// 矩形情報を表す。(x, y, width, height)で、(x, y)は矩形のtop-leftを配置する。
@@ -134,14 +163,17 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
     let filter_vec = AppFilterType::create_vec();
     loop {
         let filter_type = Select::new("filter type:", filter_vec.clone()).prompt()?;
-        let rect_info = CustomType::new("specify x, y of top-left, and width and height:")
-            .with_formatter(&|rect_info: RectInfo| {
-                let (x, y, width, height) = rect_info.0;
-                format!("x={} y={} width={} height={}", x, y, width, height)
-            })
-            .with_error_message("Please type a valid number")
-            .with_help_message("format: x y width height")
-            .prompt()?;
+        let rect_info = CustomType::new(
+            "specify x, y of top-left, and width and height (format: x y width height):",
+        )
+        .with_formatter(&|rect_info: RectInfo| {
+            let (x, y, width, height) = rect_info.0;
+            format!("x={} y={} width={} height={}", x, y, width, height)
+        })
+        .with_error_message("Please type a valid number")
+        .with_help_message("")
+        .with_help_message("if the input exceeds max width of height, it clamped automatically.")
+        .prompt()?;
         // TODO: 数値をmatch arm内で入力させる
         let filter = match filter_type {
             AppFilterType::Gaussian => {

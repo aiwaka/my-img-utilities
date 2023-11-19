@@ -24,7 +24,8 @@ fn main() -> Result<()> {
             std::process::exit(1);
         }
     };
-    println!("{:?}", app_params);
+    println!("applying following filters");
+    println!("{}", app_params);
 
     let AppParams {
         filepath,

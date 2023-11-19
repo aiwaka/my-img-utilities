@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use image::{DynamicImage, ImageBuffer};
 
 use crate::process::FilterProcessor;
@@ -9,6 +11,11 @@ pub struct GrayscaleFilter;
 impl GrayscaleFilter {
     pub fn new() -> Self {
         Self
+    }
+}
+impl Display for GrayscaleFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Grayscale")
     }
 }
 impl FilterProcessor for GrayscaleFilter {

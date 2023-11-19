@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use image::{GenericImage, GenericImageView, ImageBuffer, Rgb};
 use num_traits::Zero;
 
@@ -26,6 +28,11 @@ pub struct KuwaharaFilter {
 impl KuwaharaFilter {
     pub fn new(option: KuwaharaFilterOptions) -> Self {
         Self { option }
+    }
+}
+impl Display for KuwaharaFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Kuwahara (window_size={})", self.option.window_size)
     }
 }
 impl FilterProcessor for KuwaharaFilter {

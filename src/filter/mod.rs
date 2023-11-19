@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::process::FilterProcessor;
 
 use self::{
@@ -54,6 +56,17 @@ pub enum AppFilter {
     Mosaic(MosaicFilter),
     Truncate(TruncateColorFilter),
 }
+impl Display for AppFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Gaussian(filter) => filter.fmt(f),
+            Self::GrayScale(filter) => filter.fmt(f),
+            Self::Kuwahara(filter) => filter.fmt(f),
+            Self::Mosaic(filter) => filter.fmt(f),
+            Self::Truncate(filter) => filter.fmt(f),
+        }
+    }
+}
 impl FilterProcessor for AppFilter {
     fn process(
         &self,
@@ -65,15 +78,6 @@ impl FilterProcessor for AppFilter {
             Self::Kuwahara(filter) => filter.process(buf),
             Self::Mosaic(filter) => filter.process(buf),
             Self::Truncate(filter) => filter.process(buf),
-        }
-    }
-    fn display(&self) {
-        match self {
-            Self::Gaussian(filter) => filter.display(),
-            Self::GrayScale(filter) => filter.display(),
-            Self::Kuwahara(filter) => filter.display(),
-            Self::Mosaic(filter) => filter.display(),
-            Self::Truncate(filter) => filter.display(),
         }
     }
 }

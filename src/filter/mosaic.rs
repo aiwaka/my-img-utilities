@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use image::ImageBuffer;
 
 use crate::process::FilterProcessor;
@@ -20,6 +22,11 @@ pub struct MosaicFilter {
 impl MosaicFilter {
     pub fn new(option: MosaicFilterOption) -> Self {
         Self { option }
+    }
+}
+impl Display for MosaicFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Mosaic (size={})", self.option.size)
     }
 }
 impl FilterProcessor for MosaicFilter {

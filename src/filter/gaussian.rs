@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use image::{GenericImageView, ImageBuffer};
 use num_traits::Zero;
 
@@ -43,6 +45,15 @@ pub struct GaussianFilter {
 impl GaussianFilter {
     pub fn new(option: GaussianFilterOption) -> Self {
         Self { option }
+    }
+}
+impl Display for GaussianFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Gaussian (window_size={}, sigma={})",
+            self.option.window_size, self.option.sigma
+        )
     }
 }
 impl FilterProcessor for GaussianFilter {
