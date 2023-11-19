@@ -4,6 +4,7 @@ use cli::{clap_parser::parser::AppArgs, interactive::input::input_in_console};
 
 use crate::{
     cli::interactive::input::{AppParams, FilterProcess},
+    io::read_image,
     process::modify_part_of_img,
 };
 
@@ -11,6 +12,7 @@ mod arithmetic;
 mod cli;
 mod filter;
 mod io;
+mod my_magick;
 mod process;
 
 fn main() -> Result<()> {
@@ -29,7 +31,7 @@ fn main() -> Result<()> {
         output,
         processes,
     } = app_params;
-    let mut img = image::open(filepath).unwrap().into_rgb8();
+    let mut img = read_image(&filepath)?;
     // let img_width = img.width();
     // let img_height = img.height();
 
