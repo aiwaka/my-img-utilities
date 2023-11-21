@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use image::ImageBuffer;
 
-use crate::process::FilterProcessor;
+use crate::process::{FilterProcessor, FilterProcessorOptions};
 
 #[derive(Debug, Clone)]
 pub struct MosaicFilterOption {
@@ -13,6 +13,17 @@ impl MosaicFilterOption {
         Self { size }
     }
 }
+impl Default for MosaicFilterOption {
+    fn default() -> Self {
+        Self { size: 50 }
+    }
+}
+impl Display for MosaicFilterOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(size={})", self.size)
+    }
+}
+impl FilterProcessorOptions for MosaicFilterOption {}
 /// モザイクフィルタ
 #[derive(Debug, Clone)]
 pub struct MosaicFilter {
@@ -26,10 +37,11 @@ impl MosaicFilter {
 }
 impl Display for MosaicFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Mosaic (size={})", self.option.size)
+        write!(f, "Mosaic {}", self.option)
     }
 }
 impl FilterProcessor for MosaicFilter {
+    type OptionsType = MosaicFilterOption;
     fn process(
         &self,
         buf: &ImageBuffer<image::Rgb<u8>, Vec<u8>>,
@@ -48,5 +60,8 @@ impl FilterProcessor for MosaicFilter {
             }
         }
         result_buf
+    }
+    fn get_option(&self) -> Self::OptionsType {
+        self.option.clone()
     }
 }

@@ -3,7 +3,10 @@ use std::fmt::Display;
 use image::{GenericImage, GenericImageView, ImageBuffer, Rgb};
 use num_traits::Zero;
 
-use crate::{arithmetic::TripleNums, process::FilterProcessor};
+use crate::{
+    arithmetic::TripleNums,
+    process::{FilterProcessor, FilterProcessorOptions},
+};
 
 #[derive(Debug, Clone)]
 pub struct KuwaharaFilterOptions {
@@ -17,9 +20,15 @@ impl KuwaharaFilterOptions {
 }
 impl Default for KuwaharaFilterOptions {
     fn default() -> Self {
-        Self { window_size: 3 }
+        Self { window_size: 7 }
     }
 }
+impl Display for KuwaharaFilterOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(window_size={})", self.window_size)
+    }
+}
+impl FilterProcessorOptions for KuwaharaFilterOptions {}
 
 #[derive(Debug, Clone)]
 pub struct KuwaharaFilter {
@@ -32,10 +41,11 @@ impl KuwaharaFilter {
 }
 impl Display for KuwaharaFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Kuwahara (window_size={})", self.option.window_size)
+        write!(f, "Kuwahara {}", self.option)
     }
 }
 impl FilterProcessor for KuwaharaFilter {
+    type OptionsType = KuwaharaFilterOptions;
     fn process(&self, buf: &ImageBuffer<Rgb<u8>, Vec<u8>>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
         let window_size = self.option.window_size;
         let (buf_width, buf_height) = buf.dimensions();
@@ -104,5 +114,8 @@ impl FilterProcessor for KuwaharaFilter {
             }
         }
         result_buf
+    }
+    fn get_option(&self) -> Self::OptionsType {
+        self.option.clone()
     }
 }

@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use image::ImageBuffer;
 
-use crate::process::FilterProcessor;
+use crate::process::{FilterProcessor, FilterProcessorOptions};
 
 #[derive(Debug, Clone, Copy)]
 pub enum TruncateComponent {
@@ -37,6 +37,19 @@ impl TruncateColorFilterOption {
         Self { component }
     }
 }
+impl Display for TruncateColorFilterOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({})", self.component)
+    }
+}
+impl Default for TruncateColorFilterOption {
+    fn default() -> Self {
+        Self {
+            component: TruncateComponent::R,
+        }
+    }
+}
+impl FilterProcessorOptions for TruncateColorFilterOption {}
 /// RGBのいずれかを0にするフィルタ。
 #[derive(Debug, Clone)]
 pub struct TruncateColorFilter {
@@ -50,10 +63,11 @@ impl TruncateColorFilter {
 }
 impl Display for TruncateColorFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "TruncateColor ({})", self.option.component)
+        write!(f, "TruncateColor {}", self.option)
     }
 }
 impl FilterProcessor for TruncateColorFilter {
+    type OptionsType = TruncateColorFilterOption;
     fn process(
         &self,
         buf: &ImageBuffer<image::Rgb<u8>, Vec<u8>>,
@@ -73,5 +87,8 @@ impl FilterProcessor for TruncateColorFilter {
             }
         }
         buf
+    }
+    fn get_option(&self) -> Self::OptionsType {
+        self.option.clone()
     }
 }

@@ -95,13 +95,13 @@ impl Display for RectInfo {
     }
 }
 
-fn simple_param_input<T: FromStr>(message: &str, default: &str) -> InquireResult<T>
+fn simple_param_input<T: FromStr + ToString>(message: &str, default: T) -> InquireResult<T>
 where
     <T as FromStr>::Err: std::fmt::Display,
 {
     loop {
         match Text::new(message)
-            .with_default(default)
+            .with_default(&default.to_string())
             .prompt()?
             .parse::<T>()
         {
@@ -174,11 +174,12 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
         .with_help_message("")
         .with_help_message("if the input exceeds max width of height, it clamped automatically.")
         .prompt()?;
-        // TODO: 数値をmatch arm内で入力させる
         let filter = match filter_type {
             AppFilterType::Gaussian => {
-                let window_size = simple_param_input("input window size (positive integer)", "10")?;
-                let sigma = simple_param_input("input parameter sigma (float)", "4.0")?;
+                let GaussianFilterOption { window_size, sigma } = GaussianFilterOption::default();
+                let window_size =
+                    simple_param_input("input window size (positive integer)", window_size)?;
+                let sigma = simple_param_input("input parameter sigma (float)", sigma)?;
 
                 AppFilter::Gaussian(GaussianFilter::new(GaussianFilterOption::new(
                     window_size,
@@ -188,11 +189,14 @@ pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
 
             AppFilterType::GrayScale => AppFilter::GrayScale(GrayscaleFilter::new()),
             AppFilterType::Kuwahara => {
-                let window_size = simple_param_input("input window size (positive integer)", "3")?;
+                let KuwaharaFilterOptions { window_size } = KuwaharaFilterOptions::default();
+                let window_size =
+                    simple_param_input("input window size (positive integer)", window_size)?;
                 AppFilter::Kuwahara(KuwaharaFilter::new(KuwaharaFilterOptions::new(window_size)))
             }
             AppFilterType::Mosaic => {
-                let size = simple_param_input("input window size (positive integer)", "50")?;
+                let MosaicFilterOption { size } = MosaicFilterOption::default();
+                let size = simple_param_input("input window size (positive integer)", size)?;
                 AppFilter::Mosaic(MosaicFilter::new(MosaicFilterOption::new(size)))
             }
             AppFilterType::Truncate => {

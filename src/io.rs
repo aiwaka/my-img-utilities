@@ -1,5 +1,7 @@
 use anyhow::{ensure, Result};
 use image::{ImageBuffer, ImageResult, Rgb};
+use img_parts::jpeg::Jpeg;
+use img_parts::{Bytes, ImageICC};
 use std::fs::File;
 use std::io::{self, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
@@ -37,10 +39,20 @@ pub fn change_extention(filepath: &PathBuf, to_ext: &str) -> Result<PathBuf> {
     Ok(path)
 }
 
+pub struct ImageData {
+    pub buffer: ImageBuffer<Rgb<u8>, Vec<u8>>,
+    pub icc: Option<Bytes>,
+}
+impl ImageData {
+    pub fn new(buffer: ImageBuffer<Rgb<u8>, Vec<u8>>, icc: Option<Bytes>) -> Self {
+        Self { buffer, icc }
+    }
+}
+
 /// 受け取ったパスのファイルを読んで画像データとして返す。
 /// HEIC形式はimageクレートで読めないため、その場合はMagickが必要となる。
 /// TODO: featureとして分離すれば依存するmagickがなくてもコンパイルできそう
-pub fn read_image<P: AsRef<Path>>(path: P) -> ImageResult<ImageBuffer<Rgb<u8>, Vec<u8>>>
+pub fn read_image<P: AsRef<Path>>(path: P) -> ImageResult<ImageData>
 where
     PathBuf: std::convert::From<P>,
 {
@@ -50,13 +62,21 @@ where
         std::process::exit(1);
     });
     if ext.to_ascii_lowercase() == "heic" {
+        // heicフォーマットはjpegに変換してからImageBufferにデコードする。
         let file_buf = read_binary(pathbuf).unwrap();
         let jpeg_binary = convert_to_jpeg_binary(&file_buf).unwrap();
-        Ok(
-            image::load_from_memory_with_format(&jpeg_binary, image::ImageFormat::Jpeg)?
-                .into_rgb8(),
-        )
+        let icc = Jpeg::from_bytes(jpeg_binary.clone().into())
+            .unwrap()
+            .icc_profile();
+        let buffer = image::load_from_memory_with_format(&jpeg_binary, image::ImageFormat::Jpeg)?
+            .into_rgb8();
+        Ok(ImageData::new(buffer, icc))
     } else {
-        Ok(image::open(pathbuf)?.into_rgb8())
+        let dyn_image = image::open(pathbuf)?;
+        let icc = Jpeg::from_bytes(dyn_image.as_bytes().to_owned().into())
+            .unwrap()
+            .icc_profile();
+        let buffer = dyn_image.into_rgb8();
+        Ok(ImageData::new(buffer, icc))
     }
 }

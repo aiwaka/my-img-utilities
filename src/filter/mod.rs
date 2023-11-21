@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::process::FilterProcessor;
+use crate::process::{EmptyOption, FilterProcessor};
 
 use self::{
     gaussian::GaussianFilter, grayscale::GrayscaleFilter, kuwahara::KuwaharaFilter,
@@ -68,6 +68,7 @@ impl Display for AppFilter {
     }
 }
 impl FilterProcessor for AppFilter {
+    type OptionsType = EmptyOption;
     fn process(
         &self,
         buf: &image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
@@ -79,5 +80,8 @@ impl FilterProcessor for AppFilter {
             Self::Mosaic(filter) => filter.process(buf),
             Self::Truncate(filter) => filter.process(buf),
         }
+    }
+    fn get_option(&self) -> Self::OptionsType {
+        EmptyOption
     }
 }

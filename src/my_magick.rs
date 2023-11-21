@@ -12,9 +12,10 @@ pub(crate) fn convert_to_jpeg_binary(buf: &[u8]) -> Result<Vec<u8>> {
         magick_wand_genesis();
     });
     let mut wand = MagickWand::new();
-    wand.set_compression_quality(90)?;
     wand.read_image_blob(buf)?;
-    wand.strip_image()?;
+    wand.set_compression_quality(90)?;
+    wand.auto_orient();
+    wand.profile_image("!icc,*", None)?;
     let res = wand.write_image_blob("jpeg")?;
     Ok(res)
 }

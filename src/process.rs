@@ -1,10 +1,23 @@
 use anyhow::Result;
 use image::{GenericImage, ImageBuffer, Rgb};
 
+/// FilterProcessorの設定オプションであることを示す。
+pub trait FilterProcessorOptions: std::fmt::Debug + std::fmt::Display + Clone + Default {}
+#[derive(Default, Clone, Debug)]
+pub struct EmptyOption;
+impl std::fmt::Display for EmptyOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "")
+    }
+}
+impl FilterProcessorOptions for EmptyOption {}
+
 /// 画像処理フィルタであることを示す。
 pub trait FilterProcessor: std::fmt::Debug + std::fmt::Display {
+    type OptionsType: FilterProcessorOptions;
     /// ピクセルバッファを受け取り処理後のバッファを返す。
     fn process(&self, buf: &ImageBuffer<Rgb<u8>, Vec<u8>>) -> ImageBuffer<Rgb<u8>, Vec<u8>>;
+    fn get_option(&self) -> Self::OptionsType;
 }
 
 pub fn modify_whole_img<F>(

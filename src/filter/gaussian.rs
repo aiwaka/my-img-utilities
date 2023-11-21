@@ -3,7 +3,10 @@ use std::fmt::Display;
 use image::{GenericImageView, ImageBuffer};
 use num_traits::Zero;
 
-use crate::{arithmetic::TripleNums, process::FilterProcessor};
+use crate::{
+    arithmetic::TripleNums,
+    process::{FilterProcessor, FilterProcessorOptions},
+};
 
 // fn gaussian<T: Float + FloatConst + Copy>(sigma: T, x: T, y: T) -> T {
 //     let half = T::from(0.5).unwrap();
@@ -31,10 +34,20 @@ impl Default for GaussianFilterOption {
     fn default() -> Self {
         Self {
             window_size: 10,
-            sigma: 4.0,
+            sigma: 5.0,
         }
     }
 }
+impl Display for GaussianFilterOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "(window_size={}, sigma={})",
+            self.window_size, self.sigma
+        )
+    }
+}
+impl FilterProcessorOptions for GaussianFilterOption {}
 
 /// ガウスぼかしフィルタ
 #[derive(Debug, Clone)]
@@ -49,14 +62,11 @@ impl GaussianFilter {
 }
 impl Display for GaussianFilter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Gaussian (window_size={}, sigma={})",
-            self.option.window_size, self.option.sigma
-        )
+        write!(f, "Gaussian {}", self.option)
     }
 }
 impl FilterProcessor for GaussianFilter {
+    type OptionsType = GaussianFilterOption;
     fn process(
         &self,
         buf: &ImageBuffer<image::Rgb<u8>, Vec<u8>>,
@@ -92,5 +102,8 @@ impl FilterProcessor for GaussianFilter {
             }
         }
         result_buf
+    }
+    fn get_option(&self) -> Self::OptionsType {
+        self.option.clone()
     }
 }

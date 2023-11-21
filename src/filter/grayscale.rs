@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use image::{DynamicImage, ImageBuffer};
 
-use crate::process::FilterProcessor;
+use crate::process::{EmptyOption, FilterProcessor};
 
 /// グレイスケールにするフィルタ
 #[derive(Debug, Clone)]
@@ -19,6 +19,7 @@ impl Display for GrayscaleFilter {
     }
 }
 impl FilterProcessor for GrayscaleFilter {
+    type OptionsType = EmptyOption;
     fn process(
         &self,
         buf: &ImageBuffer<image::Rgb<u8>, Vec<u8>>,
@@ -27,5 +28,8 @@ impl FilterProcessor for GrayscaleFilter {
         let gray = image.grayscale();
         gray.into_rgb8()
         // TODO:
+    }
+    fn get_option(&self) -> Self::OptionsType {
+        EmptyOption
     }
 }

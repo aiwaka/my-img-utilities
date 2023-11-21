@@ -1,10 +1,14 @@
+use std::fs::File;
+
 use anyhow::Result;
 use clap::Parser;
 use cli::{clap_parser::parser::AppArgs, interactive::input::input_in_console};
+use image::codecs::jpeg::JpegEncoder;
+use img_parts::{jpeg::Jpeg, ImageICC};
 
 use crate::{
     cli::interactive::input::{AppParams, FilterProcess},
-    io::read_image,
+    io::{read_image, ImageData},
     process::modify_part_of_img,
 };
 
@@ -32,10 +36,12 @@ fn main() -> Result<()> {
         output,
         processes,
     } = app_params;
-    let mut img = read_image(&filepath)?;
-    // let img_width = img.width();
-    // let img_height = img.height();
+    let ImageData {
+        buffer: mut img,
+        icc,
+    } = read_image(&filepath)?;
 
+    // フィルタをピクセル列に繰り返し適用
     for filter_process in processes.iter() {
         let FilterProcess {
             filter,
@@ -46,6 +52,11 @@ fn main() -> Result<()> {
         } = filter_process;
         img = modify_part_of_img(img, *x, *y, *width, *height, filter).unwrap();
     }
-    img.save(output).unwrap();
+    // icc profileを引き継ぎながらファイルに書き出す
+    let mut jpeg_buf = Vec::<u8>::new();
+    img.write_with_encoder(JpegEncoder::new_with_quality(&mut jpeg_buf, 85))?;
+    let mut jpeg = Jpeg::from_bytes(jpeg_buf.into())?;
+    jpeg.set_icc_profile(icc);
+    jpeg.encoder().write_to(File::create(output)?)?;
     Ok(())
 }

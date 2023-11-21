@@ -16,3 +16,7 @@ dialoguer = { version = "0.11", features = ["fuzzy-select"] }
 console = "0.15.7"
 inquire = "0.6.2"
 rayon = "1.8.0"
+serde = "1.0.192"
+serde_derive = "1.0.192"
+serde_yaml = "0.9.27"
+img-parts = "0.3.0"
