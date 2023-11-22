@@ -103,6 +103,7 @@ where
         match Text::new(message)
             .with_default(&default.to_string())
             .prompt()?
+            .trim()
             .parse::<T>()
         {
             Ok(sigma) => break Ok(sigma),
@@ -114,7 +115,7 @@ where
     }
 }
 
-pub fn input_in_console(app_args: &AppArgs) -> InquireResult<AppParams> {
+pub fn input_on_console(app_args: &AppArgs) -> InquireResult<AppParams> {
     // コマンドライン引数に存在しない場合はプロンプトを用いて決定させる。
     let filepath = match &app_args.filepath {
         Some(filepath) => {

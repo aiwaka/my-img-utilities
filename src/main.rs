@@ -2,7 +2,7 @@ use std::fs::File;
 
 use anyhow::Result;
 use clap::Parser;
-use cli::{clap_parser::parser::AppArgs, interactive::input::input_in_console};
+use cli::{clap_parser::parser::AppArgs, interactive::input::input_on_console};
 use image::codecs::jpeg::JpegEncoder;
 use img_parts::{jpeg::Jpeg, ImageICC};
 
@@ -21,7 +21,7 @@ mod process;
 
 fn main() -> Result<()> {
     let app_args = AppArgs::parse();
-    let app_params = match input_in_console(&app_args) {
+    let app_params = match input_on_console(&app_args) {
         Ok(res) => res,
         Err(err) => {
             println!("{}", err);
